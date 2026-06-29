@@ -45,6 +45,22 @@
     .fbtn.activo{background:var(--rojo);border-color:var(--rojo);color:#fff;}
     .fbtn.activo-acopio{background:var(--azul);border-color:var(--azul);color:#fff;}
 
+    /* ESTADO FILTER */
+    .estado-wrap{background:var(--blanco);padding:8px 14px;border-bottom:1px solid var(--gris4);position:sticky;top:58px;z-index:1000;}
+    .estado-row{display:flex;align-items:center;gap:8px;}
+    .estado-select{flex:1;border:1.5px solid var(--gris4);border-radius:20px;padding:6px 12px;font-size:.78rem;font-family:inherit;color:var(--gris1);background:var(--blanco);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%23888'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:28px;}
+    .estado-select:focus{outline:none;border-color:var(--rojo);}
+    .estado-info{display:none;background:#eaf4fb;border-radius:8px;padding:7px 12px;font-size:.73rem;color:#1a5276;margin-top:6px;line-height:1.4;}
+    .estado-info.visible{display:block;}
+
+    /* FILTROS */
+    .filtros-wrap{background:var(--blanco);padding:8px 14px 10px;border-bottom:1px solid var(--gris4);position:sticky;top:105px;z-index:999;}
+    .filtros{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}
+    .filtros::-webkit-scrollbar{display:none;}
+    .fbtn{border:1.5px solid var(--gris4);background:var(--blanco);border-radius:20px;padding:5px 11px;font-size:.74rem;cursor:pointer;white-space:nowrap;transition:all .15s;color:var(--gris1);}
+    .fbtn.activo{background:var(--rojo);border-color:var(--rojo);color:#fff;}
+    .fbtn.activo-acopio{background:var(--azul);border-color:var(--azul);color:#fff;}
+
     /* VISTAS */
     #vistaLista{display:block;}
     #vistaMapa{display:none;}
@@ -161,6 +177,18 @@
   </div>
 </div>
 
+<!-- FILTRO ESTADO -->
+<div class="estado-wrap">
+  <div class="estado-row">
+    <select class="estado-select" id="estadoSelect" onchange="cambiarEstado(this.value)">
+      <option value="todos">📍 Todos los estados</option>
+    </select>
+  </div>
+  <div class="estado-info" id="estadoInfo">
+    ℹ️ Si tu estado no aparece en la lista es porque aún no se han reportado puntos para esa zona. ¡Puedes ser el primero en reportar!
+  </div>
+</div>
+
 <div class="filtros-wrap">
   <div class="filtros" id="filtros">
     <button class="fbtn activo" data-tipo="todos">Todos</button>
@@ -217,6 +245,34 @@
           </select></div>
         <div class="campo"><label class="req">Dirección</label>
           <input type="text" id="a_direccion" placeholder="Ej: Av. Bolívar, frente al Sambil"></div>
+                <div class="campo"><label class="req">Estado</label>
+          <select id="a_estado">
+            <option value="">— Selecciona el estado —</option>
+            <option value="Amazonas">Amazonas</option>
+            <option value="Anzoátegui">Anzoátegui</option>
+            <option value="Apure">Apure</option>
+            <option value="Aragua">Aragua</option>
+            <option value="Barinas">Barinas</option>
+            <option value="Bolívar">Bolívar</option>
+            <option value="Carabobo">Carabobo</option>
+            <option value="Cojedes">Cojedes</option>
+            <option value="Delta Amacuro">Delta Amacuro</option>
+            <option value="Distrito Capital">Distrito Capital</option>
+            <option value="Falcón">Falcón</option>
+            <option value="Guárico">Guárico</option>
+            <option value="Lara">Lara</option>
+            <option value="Mérida">Mérida</option>
+            <option value="Miranda">Miranda</option>
+            <option value="Monagas">Monagas</option>
+            <option value="Nueva Esparta">Nueva Esparta</option>
+            <option value="Portuguesa">Portuguesa</option>
+            <option value="Sucre">Sucre</option>
+            <option value="Táchira">Táchira</option>
+            <option value="Trujillo">Trujillo</option>
+            <option value="Vargas">Vargas</option>
+            <option value="Yaracuy">Yaracuy</option>
+            <option value="Zulia">Zulia</option>
+          </select></div>
         <input type="hidden" id="a_lat"><input type="hidden" id="a_lng">
         <div class="campo"><label>Enlace Google Maps (recomendado)</label>
           <input type="url" id="a_maps" placeholder="https://maps.app.goo.gl/...">
@@ -265,6 +321,34 @@
           </select></div>
         <div class="campo"><label class="req">Dirección</label>
           <input type="text" id="c_direccion" placeholder="Ej: Av. Las Delicias, C.C. Las Américas"></div>
+                <div class="campo"><label class="req">Estado</label>
+          <select id="c_estado">
+            <option value="">— Selecciona el estado —</option>
+            <option value="Amazonas">Amazonas</option>
+            <option value="Anzoátegui">Anzoátegui</option>
+            <option value="Apure">Apure</option>
+            <option value="Aragua">Aragua</option>
+            <option value="Barinas">Barinas</option>
+            <option value="Bolívar">Bolívar</option>
+            <option value="Carabobo">Carabobo</option>
+            <option value="Cojedes">Cojedes</option>
+            <option value="Delta Amacuro">Delta Amacuro</option>
+            <option value="Distrito Capital">Distrito Capital</option>
+            <option value="Falcón">Falcón</option>
+            <option value="Guárico">Guárico</option>
+            <option value="Lara">Lara</option>
+            <option value="Mérida">Mérida</option>
+            <option value="Miranda">Miranda</option>
+            <option value="Monagas">Monagas</option>
+            <option value="Nueva Esparta">Nueva Esparta</option>
+            <option value="Portuguesa">Portuguesa</option>
+            <option value="Sucre">Sucre</option>
+            <option value="Táchira">Táchira</option>
+            <option value="Trujillo">Trujillo</option>
+            <option value="Vargas">Vargas</option>
+            <option value="Yaracuy">Yaracuy</option>
+            <option value="Zulia">Zulia</option>
+          </select></div>
         <input type="hidden" id="c_lat"><input type="hidden" id="c_lng">
         <div class="campo"><label>Enlace Google Maps (recomendado)</label>
           <input type="url" id="c_maps" placeholder="https://maps.app.goo.gl/...">
@@ -291,8 +375,9 @@ const SHEETS_URL = "https://script.google.com/macros/s/AKfycbw5-pIaw_taVIClv5wXQ
 
 let datosAyuda = [];
 let datosAcopio = [];
-let modoActivo = "todos";   // todos | ayuda | acopio
+let modoActivo = "todos";
 let filtroActivo = "todos";
+let estadoActivo = "todos";
 let mapa = null;
 let marcadores = [];
 let vistaActual = "lista";
@@ -390,8 +475,30 @@ function getDatos() {
   return [...datosAyuda.map(d=>({...d,_modo:"ayuda"})), ...datosAcopio.map(d=>({...d,_modo:"acopio"}))];
 }
 function filtrados() {
-  const d = getDatos();
-  return filtroActivo === "todos" ? d : d.filter(x => x.tipo === filtroActivo);
+  let d = getDatos();
+  if (filtroActivo !== "todos") d = d.filter(x => x.tipo === filtroActivo);
+  if (estadoActivo !== "todos") d = d.filter(x => (x.estado||"") === estadoActivo);
+  return d;
+}
+
+function cambiarEstado(val) {
+  estadoActivo = val;
+  // Show info banner if a state is selected but has no results
+  const info = document.getElementById("estadoInfo");
+  const f = filtrados();
+  info.classList.toggle("visible", val !== "todos" && f.length === 0);
+  renderLista();
+  if (vistaActual === "mapa") renderMarcadores();
+}
+
+function actualizarSelectorEstados() {
+  const todos = [...datosAyuda, ...datosAcopio];
+  const estados = [...new Set(todos.map(d => d.estado).filter(e => e && e.trim()))].sort();
+  const sel = document.getElementById("estadoSelect");
+  const current = sel.value;
+  sel.innerHTML = '<option value="todos">📍 Todos los estados</option>' +
+    estados.map(e => `<option value="${e}">${e}</option>`).join("");
+  if (estados.includes(current)) sel.value = current;
 }
 
 // ── LISTA ──
@@ -443,7 +550,7 @@ function renderLista() {
         ${verifHTML}
       </div>
       <div class="t-nombre">${d.nombre}</div>
-      <div class="t-dir">📍 ${d.direccion}</div>
+      <div class="t-dir">📍 ${d.direccion}${d.estado ? ' · <strong>'+d.estado+'</strong>' : ''}</div>
       <div class="t-desc">${d.descripcion||""}</div>
       <div class="t-acciones">
         ${contactoHTML(d, modo)}
@@ -534,7 +641,7 @@ function cerrarModal(tipo) {
   document.getElementById(id).classList.remove("open");
   document.body.style.overflow = "";
   const prefix = tipo === "ayuda" ? "a" : "c";
-  [`${prefix}_nombre`,`${prefix}_tipo`,`${prefix}_direccion`,`${prefix}_maps`,
+  [`${prefix}_nombre`,`${prefix}_tipo`,`${prefix}_direccion`,`${prefix}_estado`,`${prefix}_maps`,
    `${prefix}_lat`,`${prefix}_lng`,`${prefix}_desc`,`${prefix}_contacto`,`${prefix}_reportero`]
     .forEach(fid => { const el=document.getElementById(fid); if(el) el.value=""; });
   document.getElementById(`formWrap${tipo==="ayuda"?"Ayuda":"Acopio"}`).style.display = "block";
@@ -590,9 +697,10 @@ async function enviarReporte(tipo) {
   if (!lat || !lng) { const c = extraerCoordsDeLink(mapsLink); if (c) { lat=c.lat; lng=c.lng; } }
   if (!lat || !lng) { const c = await geocodificar(dir); if (c) { lat=c.lat; lng=c.lng; } }
 
+  const estado = document.getElementById(`${p}_estado`).value;
   const payload = {
     modo: tipo,
-    nombre, tipo: tipoVal, direccion: dir, lat, lng, maps_link: mapsLink,
+    nombre, tipo: tipoVal, direccion: dir, estado, lat, lng, maps_link: mapsLink,
     descripcion: document.getElementById(`${p}_desc`).value.trim(),
     contacto: document.getElementById(`${p}_contacto`).value.trim(),
     wa: document.getElementById(`${p}_contacto`).value.trim().startsWith("04") ? "si" : "no",
@@ -619,6 +727,7 @@ async function cargarDatos() {
     // Compatibilidad con formato anterior (array plano)
     if (Array.isArray(json)) datosAyuda = json;
   } catch(e) { console.warn("Error cargando datos:", e); }
+  actualizarSelectorEstados();
   renderLista();
   if (vistaActual === "mapa" && mapa) renderMarcadores();
 }
