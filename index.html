@@ -395,9 +395,21 @@ function filtrados() {
 }
 
 // ── LISTA ──
+function formatearWA(numero) {
+  // Limpia todo lo que no sea dígito
+  const digits = numero.replace(/\D/g, "");
+  // Si tiene 11 dígitos empieza con 0 (ej: 04141234567) → quitar el 0
+  if (digits.length === 11 && digits.startsWith("0")) return "58" + digits.slice(1);
+  // Si tiene 10 dígitos (ej: 4141234567) → agregar 58 directamente
+  if (digits.length === 10) return "58" + digits;
+  // Si ya tiene código de país (58...)
+  if (digits.startsWith("58")) return digits;
+  return "58" + digits;
+}
+
 function contactoHTML(d, modo) {
   if (!d.contacto || d.contacto === "undefined") return "";
-  if (d.wa) return `<a class="btn-accion btn-wa" href="https://wa.me/58${d.contacto.replace(/\D/g,"").slice(1)}">💬 WhatsApp</a>`;
+  if (d.wa) return `<a class="btn-accion btn-wa" href="https://wa.me/${formatearWA(d.contacto)}">💬 WhatsApp</a>`;
   const color = modo === "acopio" ? "background:#2471A3" : "";
   return `<a class="btn-accion btn-llamar" style="${color}" href="tel:${d.contacto}">📞 ${d.contacto}</a>`;
 }
@@ -473,7 +485,7 @@ function popupHTML(d, modo) {
   const LABELS = esAcopio ? LABELS_ACOPIO : LABELS_AYUDA;
   const tel = d.contacto && d.contacto !== "undefined"
     ? (d.wa
-        ? `<a class="popup-btn pb-wa" href="https://wa.me/58${d.contacto.replace(/\D/g,"").slice(1)}">💬 WhatsApp</a>`
+        ? `<a class="popup-btn pb-wa" href="https://wa.me/${formatearWA(d.contacto)}">💬 WhatsApp</a>`
         : `<a class="popup-btn pb-llamar" href="tel:${d.contacto}">📞 Llamar</a>`)
     : "";
   return `<div class="popup-nombre">${d.nombre}</div>
