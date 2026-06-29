@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Ayuda Maracay · Terremoto 2026</title>
+  <meta name="description" content="Directorio y mapa de puntos de ayuda humanitaria en Maracay, Aragua, tras el terremoto del 24 de junio de 2026.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <style>
+    :root {
+      --rojo:#C0392B; --rojo-dark:#922B21; --rojo-suave:#f9eae8;
+      --verde:#27AE60; --amarillo:#F39C12; --azul:#2980B9;
+      --morado:#8E44AD; --teal:#16A085;
+      --gris1:#1a1a1a; --gris2:#555; --gris3:#888; --gris4:#ddd; --gris5:#f5f5f5;
+      --blanco:#fff;
+      --tipo-albergue:#2980B9; --tipo-comida:#27AE60;
+      --tipo-medicamentos:#C0392B; --tipo-ropa:#F39C12;
+      --tipo-rescate:#8E44AD; --tipo-psicologica:#16A085;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    html,body{height:100%;font-family:'Segoe UI',Arial,sans-serif;background:var(--gris5);color:var(--gris1);}
+
+    /* HEADER */
+    header{background:var(--rojo);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1000;box-shadow:0 2px 8px rgba(0,0,0,.25);}
+    .header-left h1{font-size:1.1rem;font-weight:700;}
+    .header-left p{font-size:.72rem;opacity:.85;margin-top:1px;}
+    .toggle-vista{display:flex;background:rgba(255,255,255,.2);border-radius:20px;overflow:hidden;}
+    .toggle-btn{border:none;background:transparent;color:#fff;padding:6px 14px;font-size:.78rem;cursor:pointer;font-weight:600;transition:background .15s;}
+    .toggle-btn.activo{background:rgba(255,255,255,.35);}
+
+    /* ALERTA */
+    .alerta{background:#fff3cd;border-left:4px solid var(--amarillo);padding:8px 14px;font-size:.75rem;color:#7a5c00;line-height:1.4;}
+
+    /* FILTROS */
+    .filtros-wrap{background:var(--blanco);padding:10px 14px;border-bottom:1px solid var(--gris4);position:sticky;top:58px;z-index:999;}
+    .filtros{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}
+    .filtros::-webkit-scrollbar{display:none;}
+    .fbtn{border:1.5px solid var(--gris4);background:var(--blanco);border-radius:20px;padding:5px 11px;font-size:.74rem;cursor:pointer;white-space:nowrap;transition:all .15s;color:var(--gris1);}
+    .fbtn.activo{background:var(--rojo);border-color:var(--rojo);color:#fff;}
+
+    /* VISTAS */
+    #vistaLista{display:block;}
+    #vistaMapa{display:none;}
+
+    /* MAPA */
+    #mapa{height:calc(100vh - 130px);width:100%;}
+
+    /* LISTA */
+    .conteo-bar{padding:8px 14px;font-size:.74rem;color:var(--gris3);display:flex;justify-content:space-between;align-items:center;}
+    .btn-reportar-inline{background:#fff;border:1.5px solid var(--rojo);color:var(--rojo);border-radius:20px;padding:5px 14px;font-size:.78rem;font-weight:700;cursor:pointer;}
+    .lista{padding:6px 12px 90px;display:flex;flex-direction:column;gap:12px;}
+
+    /* TARJETA */
+    .tarjeta{background:var(--blanco);border-radius:12px;padding:14px;box-shadow:0 1px 6px rgba(0,0,0,.09);cursor:pointer;}
+    .t-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+    .badge{display:inline-flex;align-items:center;gap:5px;font-size:.75rem;padding:4px 10px;border-radius:20px;font-weight:700;}
+    .badge-albergue{background:#d6eaf8;color:#1a5276;}
+    .badge-comida{background:#d5f5e3;color:#1e8449;}
+    .badge-medicamentos{background:#fadbd8;color:#922b21;}
+    .badge-ropa{background:#fef9e7;color:#7d6608;}
+    .badge-rescate{background:#e8daef;color:#6c3483;}
+    .badge-psicologica{background:#d1f2eb;color:#0e6655;}
+    .t-verif{font-size:.72rem;font-weight:600;}
+    .verif-si{color:var(--verde);}
+    .verif-no{color:#f39c12;}
+    .t-nombre{font-weight:700;font-size:1rem;margin-bottom:5px;line-height:1.3;}
+    .t-dir{font-size:.8rem;color:var(--gris2);margin-bottom:5px;display:flex;align-items:flex-start;gap:4px;}
+    .t-desc{font-size:.82rem;color:var(--gris2);margin-bottom:12px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+    .t-acciones{display:flex;gap:8px;flex-wrap:wrap;}
+    .btn-accion{display:inline-flex;align-items:center;gap:5px;padding:9px 16px;border-radius:8px;font-size:.82rem;font-weight:700;text-decoration:none;border:none;cursor:pointer;white-space:nowrap;}
+    .btn-llamar{background:var(--rojo);color:#fff;}
+    .btn-wa{background:#25d366;color:#fff;}
+    .btn-mapa-link{background:var(--gris5);color:var(--gris2);border:1px solid var(--gris4);}
+
+    /* VACÍO */
+    .vacio{text-align:center;padding:48px 20px;color:var(--gris3);}
+    .vacio-icon{font-size:2.5rem;margin-bottom:10px;}
+
+    /* BTN FLOTANTE */
+    .fab{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--rojo);color:#fff;border:none;border-radius:28px;padding:14px 26px;font-size:.92rem;font-weight:700;box-shadow:0 4px 18px rgba(192,57,43,.45);cursor:pointer;z-index:998;white-space:nowrap;}
+
+    /* MODAL BOTTOM SHEET */
+    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:flex-end;justify-content:center;}
+    .overlay.open{display:flex;}
+    .sheet{background:var(--blanco);border-radius:16px 16px 0 0;padding:20px 16px 36px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;}
+    .sheet-titulo{font-size:1.05rem;font-weight:700;margin-bottom:3px;}
+    .sheet-sub{font-size:.78rem;color:var(--gris3);margin-bottom:14px;}
+    .btn-close{float:right;background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--gris3);margin-top:-4px;}
+    .aviso-sheet{background:#eaf4fb;border-left:3px solid var(--azul);padding:8px 12px;font-size:.74rem;color:#1a5276;border-radius:0 6px 6px 0;margin-bottom:14px;line-height:1.5;}
+    .campo{margin-bottom:12px;}
+    .campo label{display:block;font-size:.78rem;font-weight:600;margin-bottom:4px;}
+    .req::after{content:' *';color:var(--rojo);}
+    .campo input,.campo select,.campo textarea{width:100%;border:1.5px solid var(--gris4);border-radius:8px;padding:9px 12px;font-size:.88rem;font-family:inherit;color:var(--gris1);background:var(--blanco);}
+    .campo textarea{resize:vertical;min-height:68px;}
+    .campo input:focus,.campo select:focus,.campo textarea:focus{outline:none;border-color:var(--rojo);}
+    .campo-hint{font-size:.7rem;color:var(--gris3);margin-top:3px;}
+    .coords-row{display:flex;gap:8px;}
+    .coords-row .campo{flex:1;}
+    .btn-enviar{width:100%;background:var(--rojo);color:#fff;border:none;border-radius:8px;padding:13px;font-size:.95rem;font-weight:700;cursor:pointer;margin-top:6px;}
+    .exito{display:none;text-align:center;padding:28px 16px;}
+    .exito-icon{font-size:3rem;margin-bottom:10px;}
+    .exito h3{margin-bottom:6px;}
+    .exito p{font-size:.82rem;color:var(--gris3);margin-bottom:16px;}
+
+    /* POPUP MAPA */
+    .leaflet-popup-content{font-family:'Segoe UI',Arial,sans-serif;font-size:.82rem;min-width:180px;}
+    .popup-nombre{font-weight:700;font-size:.9rem;margin-bottom:4px;}
+    .popup-dir{color:var(--gris2);margin-bottom:4px;}
+    .popup-desc{margin-bottom:8px;line-height:1.4;}
+    .popup-btns{display:flex;gap:6px;flex-wrap:wrap;}
+    .popup-btn{padding:5px 10px;border-radius:5px;font-size:.75rem;font-weight:700;text-decoration:none;color:#fff;}
+    .pb-llamar{background:var(--rojo);}
+    .pb-wa{background:#25d366;}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>🆘 Ayuda Maracay</h1>
+    <p>Aragua · Terremoto 24 Jun 2026</p>
+  </div>
+  <div class="toggle-vista">
+    <button class="toggle-btn activo" id="btnLista" onclick="mostrarVista('lista')">📋 Lista</button>
+    <button class="toggle-btn" id="btnMapa" onclick="mostrarVista('mapa')">🗺️ Mapa</button>
+  </div>
+</header>
+
+<div class="alerta">⚠️ Info actualizada por voluntarios. Llama o escribe antes de desplazarte para confirmar disponibilidad.</div>
+
+<div class="filtros-wrap">
+  <div class="filtros" id="filtros">
+    <button class="fbtn activo" data-tipo="todos">Todos</button>
+    <button class="fbtn" data-tipo="albergue">🏠 Albergue</button>
+    <button class="fbtn" data-tipo="comida">🍲 Comida</button>
+    <button class="fbtn" data-tipo="medicamentos">💊 Medicamentos</button>
+    <button class="fbtn" data-tipo="ropa">👕 Ropa</button>
+    <button class="fbtn" data-tipo="rescate">🚨 Rescate</button>
+    <button class="fbtn" data-tipo="psicologica">🧠 Apoyo psic.</button>
+  </div>
+</div>
+
+<!-- VISTA LISTA -->
+<div id="vistaLista">
+  <div class="conteo-bar">
+    <span id="conteo"></span>
+    <button class="btn-reportar-inline" onclick="abrirModal()">+ Reportar</button>
+  </div>
+  <div class="lista" id="lista"></div>
+</div>
+
+<!-- VISTA MAPA -->
+<div id="vistaMapa">
+  <div id="mapa"></div>
+</div>
+
+<!-- FAB -->
+<button class="fab" onclick="abrirModal()">+ Reportar punto de ayuda</button>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="clickOverlay(event)">
+  <div class="sheet">
+    <button class="btn-close" onclick="cerrarModal()">✕</button>
+    <div class="sheet-titulo">Reportar punto de ayuda</div>
+    <div class="sheet-sub">Tu reporte ayuda a que más personas encuentren ayuda rápido en Maracay.</div>
+    <div class="aviso-sheet">
+      📋 Cada reporte es revisado antes de publicarse. Si conoces coordenadas GPS del lugar, inclúyelas — ayuda a que aparezca exacto en el mapa.
+    </div>
+    <div id="formWrap">
+      <div class="campo">
+        <label class="req">Nombre del lugar u organización</label>
+        <input type="text" id="f_nombre" placeholder="Ej: Iglesia San José, Cruz Roja Maracay…">
+      </div>
+      <div class="campo">
+        <label class="req">Tipo de ayuda</label>
+        <select id="f_tipo">
+          <option value="">— Selecciona —</option>
+          <option value="albergue">🏠 Albergue / Refugio</option>
+          <option value="comida">🍲 Comida / Agua</option>
+          <option value="medicamentos">💊 Medicamentos / Atención médica</option>
+          <option value="ropa">👕 Ropa / Artículos básicos</option>
+          <option value="rescate">🚨 Rescate / Búsqueda</option>
+          <option value="psicologica">🧠 Apoyo psicológico</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label class="req">Dirección</label>
+        <input type="text" id="f_direccion" placeholder="Ej: Av. Las Delicias, frente al C.C. Las Américas">
+      </div>
+      <div class="campo">
+        <label>Coordenadas GPS (opcional pero recomendado)</label>
+        <div class="coords-row">
+          <div class="campo" style="margin-bottom:0">
+            <input type="text" id="f_lat" placeholder="Latitud  Ej: 10.2469">
+          </div>
+          <div class="campo" style="margin-bottom:0">
+            <input type="text" id="f_lng" placeholder="Longitud  Ej: -67.5958">
+          </div>
+        </div>
+        <div class="campo-hint">📍 En Google Maps: mantén presionado el punto → copia los números que aparecen abajo</div>
+      </div>
+      <div class="campo">
+        <label>Descripción (qué ofrecen, horario, requisitos)</label>
+        <textarea id="f_desc" placeholder="Ej: Abierto 7am–8pm. Aceptan familias. Traer cédula."></textarea>
+      </div>
+      <div class="campo">
+        <label>Teléfono o WhatsApp</label>
+        <input type="text" id="f_contacto" placeholder="Ej: 0412-1234567">
+      </div>
+      <div class="campo">
+        <label>Tu nombre (opcional)</label>
+        <input type="text" id="f_reportero" placeholder="Para seguimiento del reporte">
+      </div>
+      <button class="btn-enviar" onclick="enviarReporte()">Enviar reporte</button>
+    </div>
+    <div class="exito" id="exitoWrap">
+      <div class="exito-icon">✅</div>
+      <h3>¡Reporte recibido!</h3>
+      <p>Será revisado y publicado en breve.<br>Gracias por ayudar a tu comunidad.</p>
+      <button class="btn-enviar" onclick="cerrarModal()" style="max-width:180px;margin:0 auto;display:block;">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+// GOOGLE SHEETS WEBHOOK
+// Reemplaza esta URL con la de tu Google Apps Script al desplegarlo
+// ─────────────────────────────────────────────────────────────
+const SHEETS_URL = "https://script.google.com/macros/s/AKfycbw5-pIaw_taVIClv5wXQ96Ol2tl1wMyDdvRQi40T2CKoS0wUkJdWnWEvC-Pjfpj7lGV5g/exec";
+
+let datos = []; // Se carga desde Google Sheets
+
+const COLORES = {
+  albergue:"#2980B9", comida:"#27AE60", medicamentos:"#C0392B",
+  ropa:"#F39C12", rescate:"#8E44AD", psicologica:"#16A085"
+};
+const LABELS = {
+  albergue:"🏠 Albergue", comida:"🍲 Comida", medicamentos:"💊 Medicamentos",
+  ropa:"👕 Ropa", rescate:"🚨 Rescate", psicologica:"🧠 Apoyo psic."
+};
+const BADGES = {
+  albergue:"badge-albergue", comida:"badge-comida", medicamentos:"badge-medicamentos",
+  ropa:"badge-ropa", rescate:"badge-rescate", psicologica:"badge-psicologica"
+};
+
+let filtroActivo = "todos";
+let mapa = null;
+let marcadores = [];
+let vistaActual = "lista";
+
+// ── FILTROS ──
+document.getElementById("filtros").addEventListener("click", e => {
+  if (!e.target.classList.contains("fbtn")) return;
+  document.querySelectorAll(".fbtn").forEach(b => b.classList.remove("activo"));
+  e.target.classList.add("activo");
+  filtroActivo = e.target.dataset.tipo;
+  renderLista();
+  if (vistaActual === "mapa") renderMarcadores();
+});
+
+// ── VISTA TOGGLE ──
+function mostrarVista(v) {
+  vistaActual = v;
+  document.getElementById("vistaLista").style.display = v === "lista" ? "block" : "none";
+  document.getElementById("vistaMapa").style.display = v === "mapa" ? "block" : "none";
+  document.getElementById("btnLista").classList.toggle("activo", v === "lista");
+  document.getElementById("btnMapa").classList.toggle("activo", v === "mapa");
+  if (v === "mapa") {
+    if (!mapa) iniciarMapa();
+    else { mapa.invalidateSize(); renderMarcadores(); }
+  }
+}
+
+// ── LISTA ──
+function filtrados() {
+  return filtroActivo === "todos" ? datos : datos.filter(d => d.tipo === filtroActivo);
+}
+
+function contactoHTML(d) {
+  if (!d.contacto) return "";
+  if (d.wa) return `<a class="btn-accion btn-wa" href="https://wa.me/58${d.contacto.replace(/\D/g,"").slice(1)}">💬 WhatsApp</a>`;
+  return `<a class="btn-accion btn-llamar" href="tel:${d.contacto}">📞 ${d.contacto}</a>`;
+}
+
+function renderLista() {
+  const f = filtrados();
+  document.getElementById("conteo").textContent = `${f.length} punto${f.length!==1?"s":""} cerca de ti`;
+  if (!f.length) {
+    document.getElementById("lista").innerHTML = `<div class="vacio"><div class="vacio-icon">🔍</div><p>Sin puntos para este filtro aún.<br>¿Conoces alguno? ¡Repórtalo!</p></div>`;
+    return;
+  }
+  document.getElementById("lista").innerHTML = f.map(d => {
+    const verifHTML = d.verificado
+      ? `<span class="t-verif verif-si">✓ Verificado</span>`
+      : `<span class="t-verif verif-no">⏳ Sin verificar</span>`;
+    return `
+    <div class="tarjeta" data-tipo="${d.tipo}" onclick="verEnMapa(${d.id})">
+      <div class="t-meta">
+        <span class="badge ${BADGES[d.tipo]}">${LABELS[d.tipo]}</span>
+        ${verifHTML}
+      </div>
+      <div class="t-nombre">${d.nombre}</div>
+      <div class="t-dir">📍 ${d.direccion}</div>
+      <div class="t-desc">${d.descripcion}</div>
+      <div class="t-acciones">
+        ${contactoHTML(d)}
+        <button class="btn-accion btn-mapa-link" onclick="event.stopPropagation();verEnMapa(${d.id})">🗺️ Mapa</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// ── MAPA ──
+function iniciarMapa() {
+  mapa = L.map("mapa").setView([10.2469, -67.5958], 13);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution:'© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+    maxZoom:19
+  }).addTo(mapa);
+  renderMarcadores();
+}
+
+function crearIcono(tipo) {
+  const color = COLORES[tipo] || "#888";
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">
+    <path d="M14 0C6.27 0 0 6.27 0 14c0 9.33 14 22 14 22S28 23.33 28 14C28 6.27 21.73 0 14 0z" fill="${color}"/>
+    <circle cx="14" cy="14" r="7" fill="white"/>
+  </svg>`;
+  return L.divIcon({
+    html: svg, className:"", iconSize:[28,36], iconAnchor:[14,36], popupAnchor:[0,-36]
+  });
+}
+
+function popupHTML(d) {
+  const tel = d.contacto
+    ? (d.wa
+        ? `<a class="popup-btn pb-wa" href="https://wa.me/58${d.contacto.replace(/\D/g,"").slice(1)}">💬 WhatsApp</a>`
+        : `<a class="popup-btn pb-llamar" href="tel:${d.contacto}">📞 Llamar</a>`)
+    : "";
+  return `<div class="popup-nombre">${d.nombre}</div>
+    <div class="popup-dir">📍 ${d.direccion}</div>
+    <div class="popup-desc">${d.descripcion}</div>
+    <div class="popup-btns">${tel}</div>`;
+}
+
+function renderMarcadores() {
+  marcadores.forEach(m => mapa.removeLayer(m));
+  marcadores = [];
+  const f = filtrados();
+  f.forEach(d => {
+    if (!d.lat || !d.lng) return;
+    const m = L.marker([d.lat, d.lng], {icon: crearIcono(d.tipo)})
+      .addTo(mapa)
+      .bindPopup(popupHTML(d), {maxWidth:240});
+    marcadores.push(m);
+  });
+  if (marcadores.length) {
+    const group = L.featureGroup(marcadores);
+    mapa.fitBounds(group.getBounds().pad(0.15));
+  }
+}
+
+function verEnMapa(id) {
+  const d = datos.find(x => x.id === id);
+  if (!d || !d.lat) return;
+  mostrarVista("mapa");
+  setTimeout(() => {
+    mapa.setView([d.lat, d.lng], 16);
+    const m = marcadores.find(m => {
+      const ll = m.getLatLng();
+      return Math.abs(ll.lat - d.lat) < 0.0001 && Math.abs(ll.lng - d.lng) < 0.0001;
+    });
+    if (m) m.openPopup();
+  }, 100);
+}
+
+// ── MODAL ──
+function abrirModal() {
+  document.getElementById("overlay").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+function cerrarModal() {
+  document.getElementById("overlay").classList.remove("open");
+  document.body.style.overflow = "";
+  document.getElementById("formWrap").style.display = "block";
+  document.getElementById("exitoWrap").style.display = "none";
+  ["f_nombre","f_tipo","f_direccion","f_lat","f_lng","f_desc","f_contacto","f_reportero"]
+    .forEach(id => { document.getElementById(id).value = ""; });
+}
+function clickOverlay(e) {
+  if (e.target === document.getElementById("overlay")) cerrarModal();
+}
+
+async function enviarReporte() {
+  const nombre = document.getElementById("f_nombre").value.trim();
+  const tipo = document.getElementById("f_tipo").value;
+  const dir = document.getElementById("f_direccion").value.trim();
+  if (!nombre || !tipo || !dir) { alert("Completa los campos obligatorios (*)"); return; }
+
+  const payload = {
+    nombre, tipo, direccion: dir,
+    lat: document.getElementById("f_lat").value.trim(),
+    lng: document.getElementById("f_lng").value.trim(),
+    descripcion: document.getElementById("f_desc").value.trim(),
+    contacto: document.getElementById("f_contacto").value.trim(),
+    reportero: document.getElementById("f_reportero").value.trim(),
+    fecha: new Date().toISOString()
+  };
+
+  // Enviar a Google Sheets si la URL está configurada
+  if (SHEETS_URL !== "REEMPLAZAR_CON_TU_URL_DE_APPS_SCRIPT") {
+    try {
+      await fetch(SHEETS_URL, {
+        method:"POST", mode:"no-cors",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify(payload)
+      });
+    } catch(e) { console.warn("Error enviando a Sheets:", e); }
+  } else {
+    console.log("Reporte (sin Sheets):", payload);
+  }
+
+  document.getElementById("formWrap").style.display = "none";
+  document.getElementById("exitoWrap").style.display = "block";
+}
+
+// ── INIT ──
+async function cargarDatos() {
+  const lista = document.getElementById("lista");
+  lista.innerHTML = `<div class="vacio"><div class="vacio-icon">⏳</div><p>Cargando puntos de ayuda...</p></div>`;
+  try {
+    const res = await fetch(SHEETS_URL);
+    const json = await res.json();
+    if (Array.isArray(json) && json.length > 0) {
+      datos = json;
+    }
+  } catch(e) {
+    console.warn("No se pudo cargar desde Sheets:", e);
+  }
+  renderLista();
+  if (vistaActual === "mapa" && mapa) renderMarcadores();
+}
+
+cargarDatos();
+</script>
+</body>
+</html>
