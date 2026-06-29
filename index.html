@@ -3,20 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>Ayuda Terremoto Venezuela 2026 · Maracay</title>
-  <meta name="description" content="Directorio y mapa de puntos de ayuda humanitaria tras el terremoto del 24 de junio de 2026 en Venezuela. Actualmente activo en Maracay, Aragua.">
+  <title>Ayuda Terremoto Venezuela 2026</title>
+  <meta name="description" content="Directorio y mapa de puntos de ayuda y centros de acopio tras el terremoto del 24 de junio de 2026 en Venezuela.">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <style>
     :root {
-      --rojo:#C0392B; --rojo-dark:#922B21; --rojo-suave:#f9eae8;
-      --verde:#27AE60; --amarillo:#F39C12; --azul:#2980B9;
-      --morado:#8E44AD; --teal:#16A085;
+      --rojo:#C0392B; --azul:#2471A3; --verde:#27AE60;
+      --amarillo:#F39C12; --morado:#8E44AD; --teal:#16A085;
       --gris1:#1a1a1a; --gris2:#555; --gris3:#888; --gris4:#ddd; --gris5:#f5f5f5;
       --blanco:#fff;
-      --tipo-albergue:#2980B9; --tipo-comida:#27AE60;
-      --tipo-medicamentos:#C0392B; --tipo-ropa:#F39C12;
-      --tipo-rescate:#8E44AD; --tipo-psicologica:#16A085;
     }
     *{box-sizing:border-box;margin:0;padding:0;}
     html,body{height:100%;font-family:'Segoe UI',Arial,sans-serif;background:var(--gris5);color:var(--gris1);}
@@ -32,40 +28,56 @@
     /* ALERTA */
     .alerta{background:#fff3cd;border-left:4px solid var(--amarillo);padding:8px 14px;font-size:.75rem;color:#7a5c00;line-height:1.4;}
 
+    /* TOGGLE MODO */
+    .modo-wrap{background:var(--blanco);padding:10px 14px 0;border-bottom:none;}
+    .modo-tabs{display:flex;gap:0;border-radius:10px;overflow:hidden;border:1.5px solid var(--gris4);}
+    .modo-btn{flex:1;border:none;background:var(--blanco);padding:8px 6px;font-size:.78rem;font-weight:700;cursor:pointer;color:var(--gris3);transition:all .15s;border-right:1.5px solid var(--gris4);}
+    .modo-btn:last-child{border-right:none;}
+    .modo-btn.activo-ayuda{background:var(--rojo);color:#fff;}
+    .modo-btn.activo-acopio{background:var(--azul);color:#fff;}
+    .modo-btn.activo-todos{background:var(--gris1);color:#fff;}
+
     /* FILTROS */
-    .filtros-wrap{background:var(--blanco);padding:10px 14px;border-bottom:1px solid var(--gris4);position:sticky;top:58px;z-index:999;}
+    .filtros-wrap{background:var(--blanco);padding:8px 14px 10px;border-bottom:1px solid var(--gris4);position:sticky;top:58px;z-index:999;}
     .filtros{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}
     .filtros::-webkit-scrollbar{display:none;}
     .fbtn{border:1.5px solid var(--gris4);background:var(--blanco);border-radius:20px;padding:5px 11px;font-size:.74rem;cursor:pointer;white-space:nowrap;transition:all .15s;color:var(--gris1);}
     .fbtn.activo{background:var(--rojo);border-color:var(--rojo);color:#fff;}
+    .fbtn.activo-acopio{background:var(--azul);border-color:var(--azul);color:#fff;}
 
     /* VISTAS */
     #vistaLista{display:block;}
     #vistaMapa{display:none;}
-
-    /* MAPA */
-    #mapa{height:calc(100vh - 130px);width:100%;}
+    #mapa{height:calc(100vh - 160px);width:100%;}
 
     /* LISTA */
     .conteo-bar{padding:8px 14px;font-size:.74rem;color:var(--gris3);display:flex;justify-content:space-between;align-items:center;}
-    .btn-reportar-inline{background:#fff;border:1.5px solid var(--rojo);color:var(--rojo);border-radius:20px;padding:5px 14px;font-size:.78rem;font-weight:700;cursor:pointer;}
-    .lista{padding:6px 12px 90px;display:flex;flex-direction:column;gap:12px;}
+    .lista{padding:6px 12px 110px;display:flex;flex-direction:column;gap:12px;}
 
     /* TARJETA */
-    .tarjeta{background:var(--blanco);border-radius:12px;padding:14px;box-shadow:0 1px 6px rgba(0,0,0,.09);cursor:pointer;}
-    .t-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-    .badge{display:inline-flex;align-items:center;gap:5px;font-size:.75rem;padding:4px 10px;border-radius:20px;font-weight:700;}
+    .tarjeta{background:var(--blanco);border-radius:12px;padding:14px;box-shadow:0 1px 6px rgba(0,0,0,.09);cursor:pointer;border-top:3px solid var(--gris4);}
+    .tarjeta.tipo-ayuda{border-top-color:var(--rojo);}
+    .tarjeta.tipo-acopio{border-top-color:var(--azul);}
+    .t-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:6px;flex-wrap:wrap;}
+    .t-meta-left{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+    .badge{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;padding:3px 9px;border-radius:16px;font-weight:700;}
+    .badge-modo-ayuda{background:#fadbd8;color:#922b21;}
+    .badge-modo-acopio{background:#d6eaf8;color:#1a5276;}
     .badge-albergue{background:#d6eaf8;color:#1a5276;}
     .badge-comida{background:#d5f5e3;color:#1e8449;}
     .badge-medicamentos{background:#fadbd8;color:#922b21;}
     .badge-ropa{background:#fef9e7;color:#7d6608;}
     .badge-rescate{background:#e8daef;color:#6c3483;}
     .badge-psicologica{background:#d1f2eb;color:#0e6655;}
-    .t-verif{font-size:.72rem;font-weight:600;}
+    .badge-alimentos{background:#d5f5e3;color:#1e8449;}
+    .badge-higiene{background:#eaf4fb;color:#1a5276;}
+    .badge-utiles{background:#fef9e7;color:#7d6608;}
+    .badge-general{background:#f0f0f0;color:#555;}
+    .t-verif{font-size:.72rem;font-weight:600;white-space:nowrap;}
     .verif-si{color:var(--verde);}
-    .verif-no{color:#f39c12;}
+    .verif-no{color:var(--amarillo);}
     .t-nombre{font-weight:700;font-size:1rem;margin-bottom:5px;line-height:1.3;}
-    .t-dir{font-size:.8rem;color:var(--gris2);margin-bottom:5px;display:flex;align-items:flex-start;gap:4px;}
+    .t-dir{font-size:.8rem;color:var(--gris2);margin-bottom:5px;}
     .t-desc{font-size:.82rem;color:var(--gris2);margin-bottom:12px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
     .t-acciones{display:flex;gap:8px;flex-wrap:wrap;}
     .btn-accion{display:inline-flex;align-items:center;gap:5px;padding:9px 16px;border-radius:8px;font-size:.82rem;font-weight:700;text-decoration:none;border:none;cursor:pointer;white-space:nowrap;}
@@ -77,18 +89,23 @@
     .vacio{text-align:center;padding:48px 20px;color:var(--gris3);}
     .vacio-icon{font-size:2.5rem;margin-bottom:10px;}
 
-    /* BTN FLOTANTE */
-    .fab{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--rojo);color:#fff;border:none;border-radius:28px;padding:14px 26px;font-size:.92rem;font-weight:700;box-shadow:0 4px 18px rgba(192,57,43,.45);cursor:pointer;z-index:998;white-space:nowrap;}
+    /* FABS - dos botones flotantes */
+    .fabs{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:998;}
+    .fab{border:none;border-radius:28px;padding:13px 20px;font-size:.85rem;font-weight:700;cursor:pointer;white-space:nowrap;box-shadow:0 4px 18px rgba(0,0,0,.2);}
+    .fab-ayuda{background:var(--rojo);color:#fff;box-shadow:0 4px 18px rgba(192,57,43,.45);}
+    .fab-acopio{background:var(--azul);color:#fff;box-shadow:0 4px 18px rgba(36,113,163,.45);}
 
-    /* MODAL BOTTOM SHEET */
+    /* MODAL */
     .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:flex-end;justify-content:center;}
     .overlay.open{display:flex;}
     .sheet{background:var(--blanco);border-radius:16px 16px 0 0;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;display:flex;flex-direction:column;}
-    .sheet-header{display:flex;justify-content:space-between;align-items:flex-start;padding:18px 16px 0;position:sticky;top:0;background:var(--blanco);z-index:10;padding-bottom:10px;border-bottom:1px solid var(--gris4);}
+    .sheet-header{display:flex;justify-content:space-between;align-items:flex-start;padding:18px 16px 10px;position:sticky;top:0;background:var(--blanco);z-index:10;border-bottom:1px solid var(--gris4);}
+    .sheet-header.ayuda{border-top:4px solid var(--rojo);}
+    .sheet-header.acopio{border-top:4px solid var(--azul);}
     .sheet-header-text{flex:1;padding-right:12px;}
     .sheet-titulo{font-size:1.05rem;font-weight:700;margin-bottom:2px;}
     .sheet-sub{font-size:.78rem;color:var(--gris3);}
-    .sheet-body{padding:14px 16px 36px;overflow-y:auto;}
+    .sheet-body{padding:14px 16px 36px;}
     .btn-close{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--gris3);line-height:1;flex-shrink:0;padding:0;}
     .aviso-sheet{background:#eaf4fb;border-left:3px solid var(--azul);padding:8px 12px;font-size:.74rem;color:#1a5276;border-radius:0 6px 6px 0;margin-bottom:14px;line-height:1.5;}
     .campo{margin-bottom:12px;}
@@ -96,11 +113,11 @@
     .req::after{content:' *';color:var(--rojo);}
     .campo input,.campo select,.campo textarea{width:100%;border:1.5px solid var(--gris4);border-radius:8px;padding:9px 12px;font-size:.88rem;font-family:inherit;color:var(--gris1);background:var(--blanco);}
     .campo textarea{resize:vertical;min-height:68px;}
-    .campo input:focus,.campo select:focus,.campo textarea:focus{outline:none;border-color:var(--rojo);}
+    .campo input:focus,.campo select:focus,.campo textarea:focus{outline:none;border-color:var(--azul);}
     .campo-hint{font-size:.7rem;color:var(--gris3);margin-top:3px;}
-    .coords-row{display:flex;gap:8px;}
-    .coords-row .campo{flex:1;}
-    .btn-enviar{width:100%;background:var(--rojo);color:#fff;border:none;border-radius:8px;padding:13px;font-size:.95rem;font-weight:700;cursor:pointer;margin-top:6px;}
+    .btn-enviar{width:100%;border:none;border-radius:8px;padding:13px;font-size:.95rem;font-weight:700;cursor:pointer;margin-top:6px;color:#fff;}
+    .btn-enviar-ayuda{background:var(--rojo);}
+    .btn-enviar-acopio{background:var(--azul);}
     .exito{display:none;text-align:center;padding:28px 16px;}
     .exito-icon{font-size:3rem;margin-bottom:10px;}
     .exito h3{margin-bottom:6px;}
@@ -109,6 +126,9 @@
     /* POPUP MAPA */
     .leaflet-popup-content{font-family:'Segoe UI',Arial,sans-serif;font-size:.82rem;min-width:180px;}
     .popup-nombre{font-weight:700;font-size:.9rem;margin-bottom:4px;}
+    .popup-modo{font-size:.68rem;padding:2px 8px;border-radius:10px;font-weight:700;display:inline-block;margin-bottom:5px;}
+    .popup-modo-ayuda{background:#fadbd8;color:#922b21;}
+    .popup-modo-acopio{background:#d6eaf8;color:#1a5276;}
     .popup-dir{color:var(--gris2);margin-bottom:4px;}
     .popup-desc{margin-bottom:8px;line-height:1.4;}
     .popup-btns{display:flex;gap:6px;flex-wrap:wrap;}
@@ -130,7 +150,16 @@
   </div>
 </header>
 
-<div class="alerta">⚠️ Info actualizada por voluntarios. Llama o escribe antes de desplazarte para confirmar disponibilidad.</div>
+<div class="alerta">⚠️ Info actualizada por voluntarios. Confirma disponibilidad antes de desplazarte.</div>
+
+<!-- TOGGLE MODO -->
+<div class="modo-wrap">
+  <div class="modo-tabs" id="modoTabs">
+    <button class="modo-btn activo-todos" data-modo="todos" onclick="cambiarModo('todos')">🔍 Todo</button>
+    <button class="modo-btn" data-modo="ayuda" onclick="cambiarModo('ayuda')">🆘 Puntos de ayuda</button>
+    <button class="modo-btn" data-modo="acopio" onclick="cambiarModo('acopio')">📦 Centros de acopio</button>
+  </div>
+</div>
 
 <div class="filtros-wrap">
   <div class="filtros" id="filtros">
@@ -146,10 +175,7 @@
 
 <!-- VISTA LISTA -->
 <div id="vistaLista">
-  <div class="conteo-bar">
-    <span id="conteo"></span>
-    <button class="btn-reportar-inline" onclick="abrirModal()">+ Reportar</button>
-  </div>
+  <div class="conteo-bar"><span id="conteo"></span></div>
   <div class="lista" id="lista"></div>
 </div>
 
@@ -158,31 +184,29 @@
   <div id="mapa"></div>
 </div>
 
-<!-- FAB -->
-<button class="fab" onclick="abrirModal()">+ Reportar punto de ayuda</button>
+<!-- FABS -->
+<div class="fabs">
+  <button class="fab fab-ayuda" onclick="abrirModal('ayuda')">🆘 Punto de ayuda</button>
+  <button class="fab fab-acopio" onclick="abrirModal('acopio')">📦 Centro de acopio</button>
+</div>
 
-<!-- MODAL -->
-<div class="overlay" id="overlay" onclick="clickOverlay(event)">
+<!-- MODAL AYUDA -->
+<div class="overlay" id="overlayAyuda" onclick="clickOverlay(event,'ayuda')">
   <div class="sheet">
-    <div class="sheet-header">
+    <div class="sheet-header ayuda">
       <div class="sheet-header-text">
-        <div class="sheet-titulo">Reportar punto de ayuda</div>
-        <div class="sheet-sub">Tu reporte ayuda a que más personas encuentren ayuda rápido.</div>
+        <div class="sheet-titulo">🆘 Reportar punto de ayuda</div>
+        <div class="sheet-sub">Lugar que da ayuda a damnificados.</div>
       </div>
-      <button class="btn-close" onclick="cerrarModal()">✕</button>
+      <button class="btn-close" onclick="cerrarModal('ayuda')">✕</button>
     </div>
     <div class="sheet-body">
-      <div class="aviso-sheet">
-        📋 Cada reporte es revisado antes de publicarse. La dirección se ubica automáticamente en el mapa.
-      </div>
-      <div id="formWrap">
-        <div class="campo">
-          <label class="req">Nombre del lugar u organización</label>
-          <input type="text" id="f_nombre" placeholder="Ej: Iglesia San José, Cruz Roja Aragua…">
-        </div>
-        <div class="campo">
-          <label class="req">Tipo de ayuda</label>
-          <select id="f_tipo">
+      <div class="aviso-sheet">📋 Revisado antes de publicarse. La dirección se ubica automáticamente en el mapa.</div>
+      <div id="formWrapAyuda">
+        <div class="campo"><label class="req">Nombre del lugar u organización</label>
+          <input type="text" id="a_nombre" placeholder="Ej: Cruz Roja Aragua, Iglesia San José…"></div>
+        <div class="campo"><label class="req">Tipo de ayuda que ofrecen</label>
+          <select id="a_tipo">
             <option value="">— Selecciona —</option>
             <option value="albergue">🏠 Albergue / Refugio</option>
             <option value="comida">🍲 Comida / Agua</option>
@@ -190,81 +214,163 @@
             <option value="ropa">👕 Ropa / Artículos básicos</option>
             <option value="rescate">🚨 Rescate / Búsqueda</option>
             <option value="psicologica">🧠 Apoyo psicológico</option>
-          </select>
-        </div>
-        <div class="campo">
-          <label class="req">Dirección</label>
-          <input type="text" id="f_direccion" placeholder="Ej: Av. Las Delicias, frente al C.C. Las Américas">
-        </div>
-        <input type="hidden" id="f_lat" value="">
-        <input type="hidden" id="f_lng" value="">
-        <div class="campo">
-          <label>Enlace de Google Maps (opcional pero recomendado)</label>
-          <input type="url" id="f_maps" placeholder="Ej: https://maps.app.goo.gl/...">
-          <div class="campo-hint">📍 En Google Maps: busca el lugar → toca Compartir → copia el enlace</div>
-        </div>
-        <div class="campo">
-          <label>Descripción (qué ofrecen, horario, requisitos)</label>
-          <textarea id="f_desc" placeholder="Ej: Abierto 7am–8pm. Aceptan familias. Traer cédula."></textarea>
-        </div>
-        <div class="campo">
-          <label>Teléfono o WhatsApp</label>
-          <input type="text" id="f_contacto" placeholder="Ej: 0412-1234567">
-        </div>
-        <div class="campo">
-          <label>Tu nombre (opcional)</label>
-          <input type="text" id="f_reportero" placeholder="Para seguimiento del reporte">
-        </div>
-        <button class="btn-enviar" onclick="enviarReporte()">Enviar reporte</button>
+          </select></div>
+        <div class="campo"><label class="req">Dirección</label>
+          <input type="text" id="a_direccion" placeholder="Ej: Av. Bolívar, frente al Sambil"></div>
+        <input type="hidden" id="a_lat"><input type="hidden" id="a_lng">
+        <div class="campo"><label>Enlace Google Maps (recomendado)</label>
+          <input type="url" id="a_maps" placeholder="https://maps.app.goo.gl/...">
+          <div class="campo-hint">📍 Google Maps → busca el lugar → Compartir → copia el link</div></div>
+        <div class="campo"><label>Descripción (qué ofrecen, horario, requisitos)</label>
+          <textarea id="a_desc" placeholder="Ej: Abierto 7am–8pm. Aceptan familias. Traer cédula."></textarea></div>
+        <div class="campo"><label>Teléfono o WhatsApp</label>
+          <input type="text" id="a_contacto" placeholder="Ej: 0412-1234567"></div>
+        <div class="campo"><label>Tu nombre (opcional)</label>
+          <input type="text" id="a_reportero" placeholder="Para seguimiento del reporte"></div>
+        <button class="btn-enviar btn-enviar-ayuda" onclick="enviarReporte('ayuda')">Enviar reporte</button>
       </div>
-      <div class="exito" id="exitoWrap">
-        <div class="exito-icon">✅</div>
-        <h3>¡Reporte recibido!</h3>
-        <p>Será revisado y publicado en breve.<br>Gracias por ayudar a tu comunidad.</p>
-        <button class="btn-enviar" onclick="cerrarModal()" style="max-width:180px;margin:0 auto;display:block;">Cerrar</button>
+      <div class="exito" id="exitoAyuda">
+        <div class="exito-icon">✅</div><h3>¡Reporte recibido!</h3>
+        <p>Será revisado y publicado en breve.</p>
+        <button class="btn-enviar btn-enviar-ayuda" onclick="cerrarModal('ayuda')" style="max-width:180px;margin:0 auto;display:block;">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ACOPIO -->
+<div class="overlay" id="overlayAcopio" onclick="clickOverlay(event,'acopio')">
+  <div class="sheet">
+    <div class="sheet-header acopio">
+      <div class="sheet-header-text">
+        <div class="sheet-titulo">📦 Reportar centro de acopio</div>
+        <div class="sheet-sub">Lugar que recibe donaciones e insumos.</div>
+      </div>
+      <button class="btn-close" onclick="cerrarModal('acopio')">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="aviso-sheet" style="border-color:var(--azul);background:#eaf4fb;color:#1a5276;">📋 Revisado antes de publicarse. La dirección se ubica automáticamente en el mapa.</div>
+      <div id="formWrapAcopio">
+        <div class="campo"><label class="req">Nombre del lugar u organización</label>
+          <input type="text" id="c_nombre" placeholder="Ej: Alcaldía Girardot, Iglesia El Calvario…"></div>
+        <div class="campo"><label class="req">¿Qué tipo de donaciones reciben?</label>
+          <select id="c_tipo">
+            <option value="">— Selecciona —</option>
+            <option value="alimentos">🥫 Alimentos no perecederos</option>
+            <option value="medicamentos">💊 Medicamentos e insumos médicos</option>
+            <option value="ropa">👕 Ropa y calzado</option>
+            <option value="higiene">🧴 Artículos de higiene personal</option>
+            <option value="utiles">📚 Útiles escolares</option>
+            <option value="general">📦 Donaciones generales</option>
+          </select></div>
+        <div class="campo"><label class="req">Dirección</label>
+          <input type="text" id="c_direccion" placeholder="Ej: Av. Las Delicias, C.C. Las Américas"></div>
+        <input type="hidden" id="c_lat"><input type="hidden" id="c_lng">
+        <div class="campo"><label>Enlace Google Maps (recomendado)</label>
+          <input type="url" id="c_maps" placeholder="https://maps.app.goo.gl/...">
+          <div class="campo-hint">📍 Google Maps → busca el lugar → Compartir → copia el link</div></div>
+        <div class="campo"><label>Descripción (qué aceptan, horario, condiciones)</label>
+          <textarea id="c_desc" placeholder="Ej: Reciben lunes a viernes 8am–5pm. Solo ropa en buen estado."></textarea></div>
+        <div class="campo"><label>Teléfono o WhatsApp</label>
+          <input type="text" id="c_contacto" placeholder="Ej: 0412-1234567"></div>
+        <div class="campo"><label>Tu nombre (opcional)</label>
+          <input type="text" id="c_reportero" placeholder="Para seguimiento del reporte"></div>
+        <button class="btn-enviar btn-enviar-acopio" onclick="enviarReporte('acopio')">Enviar reporte</button>
+      </div>
+      <div class="exito" id="exitoAcopio">
+        <div class="exito-icon">✅</div><h3>¡Reporte recibido!</h3>
+        <p>Será revisado y publicado en breve.</p>
+        <button class="btn-enviar btn-enviar-acopio" onclick="cerrarModal('acopio')" style="max-width:180px;margin:0 auto;display:block;">Cerrar</button>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-// ─────────────────────────────────────────────────────────────
-// GOOGLE SHEETS WEBHOOK
-// Reemplaza esta URL con la de tu Google Apps Script al desplegarlo
-// ─────────────────────────────────────────────────────────────
 const SHEETS_URL = "https://script.google.com/macros/s/AKfycbw5-pIaw_taVIClv5wXQ96Ol2tl1wMyDdvRQi40T2CKoS0wUkJdWnWEvC-Pjfpj7lGV5g/exec";
 
-let datos = []; // Se carga desde Google Sheets
-
-const COLORES = {
-  albergue:"#2980B9", comida:"#27AE60", medicamentos:"#C0392B",
-  ropa:"#F39C12", rescate:"#8E44AD", psicologica:"#16A085"
-};
-const LABELS = {
-  albergue:"🏠 Albergue", comida:"🍲 Comida", medicamentos:"💊 Medicamentos",
-  ropa:"👕 Ropa", rescate:"🚨 Rescate", psicologica:"🧠 Apoyo psic."
-};
-const BADGES = {
-  albergue:"badge-albergue", comida:"badge-comida", medicamentos:"badge-medicamentos",
-  ropa:"badge-ropa", rescate:"badge-rescate", psicologica:"badge-psicologica"
-};
-
+let datosAyuda = [];
+let datosAcopio = [];
+let modoActivo = "todos";   // todos | ayuda | acopio
 let filtroActivo = "todos";
 let mapa = null;
 let marcadores = [];
 let vistaActual = "lista";
 
+// Ayuda
+const COLORES_AYUDA = {
+  albergue:"#2980B9", comida:"#27AE60", medicamentos:"#C0392B",
+  ropa:"#F39C12", rescate:"#8E44AD", psicologica:"#16A085"
+};
+const LABELS_AYUDA = {
+  albergue:"🏠 Albergue", comida:"🍲 Comida", medicamentos:"💊 Medicamentos",
+  ropa:"👕 Ropa", rescate:"🚨 Rescate", psicologica:"🧠 Apoyo psic."
+};
+const BADGES_AYUDA = {
+  albergue:"badge-albergue", comida:"badge-comida", medicamentos:"badge-medicamentos",
+  ropa:"badge-ropa", rescate:"badge-rescate", psicologica:"badge-psicologica"
+};
+
+// Acopio
+const COLORES_ACOPIO = {
+  alimentos:"#27AE60", medicamentos:"#C0392B", ropa:"#F39C12",
+  higiene:"#2980B9", utiles:"#8E44AD", general:"#888"
+};
+const LABELS_ACOPIO = {
+  alimentos:"🥫 Alimentos", medicamentos:"💊 Medicamentos", ropa:"👕 Ropa",
+  higiene:"🧴 Higiene", utiles:"📚 Útiles", general:"📦 General"
+};
+const BADGES_ACOPIO = {
+  alimentos:"badge-alimentos", medicamentos:"badge-medicamentos", ropa:"badge-ropa",
+  higiene:"badge-higiene", utiles:"badge-utiles", general:"badge-general"
+};
+
+// ── MODO (ayuda / acopio / todos) ──
+function cambiarModo(modo) {
+  modoActivo = modo;
+  document.querySelectorAll(".modo-btn").forEach(b => {
+    b.classList.remove("activo-todos","activo-ayuda","activo-acopio");
+  });
+  const btn = document.querySelector(`.modo-btn[data-modo="${modo}"]`);
+  btn.classList.add(`activo-${modo}`);
+
+  // Actualizar filtros según el modo
+  const filtrosEl = document.getElementById("filtros");
+  if (modo === "acopio") {
+    filtrosEl.innerHTML = `
+      <button class="fbtn activo" data-tipo="todos">Todos</button>
+      <button class="fbtn" data-tipo="alimentos">🥫 Alimentos</button>
+      <button class="fbtn" data-tipo="medicamentos">💊 Medicamentos</button>
+      <button class="fbtn" data-tipo="ropa">👕 Ropa</button>
+      <button class="fbtn" data-tipo="higiene">🧴 Higiene</button>
+      <button class="fbtn" data-tipo="utiles">📚 Útiles</button>
+      <button class="fbtn" data-tipo="general">📦 General</button>`;
+  } else {
+    filtrosEl.innerHTML = `
+      <button class="fbtn activo" data-tipo="todos">Todos</button>
+      <button class="fbtn" data-tipo="albergue">🏠 Albergue</button>
+      <button class="fbtn" data-tipo="comida">🍲 Comida</button>
+      <button class="fbtn" data-tipo="medicamentos">💊 Medicamentos</button>
+      <button class="fbtn" data-tipo="ropa">👕 Ropa</button>
+      <button class="fbtn" data-tipo="rescate">🚨 Rescate</button>
+      <button class="fbtn" data-tipo="psicologica">🧠 Apoyo psic.</button>`;
+  }
+  filtroActivo = "todos";
+  renderLista();
+  if (vistaActual === "mapa") renderMarcadores();
+}
+
 // ── FILTROS ──
 document.getElementById("filtros").addEventListener("click", e => {
   if (!e.target.classList.contains("fbtn")) return;
-  document.querySelectorAll(".fbtn").forEach(b => b.classList.remove("activo"));
-  e.target.classList.add("activo");
+  document.querySelectorAll(".fbtn").forEach(b => b.classList.remove("activo","activo-acopio"));
   filtroActivo = e.target.dataset.tipo;
+  e.target.classList.add(modoActivo === "acopio" ? "activo-acopio" : "activo");
   renderLista();
   if (vistaActual === "mapa") renderMarcadores();
 });
 
-// ── VISTA TOGGLE ──
+// ── VISTA ──
 function mostrarVista(v) {
   vistaActual = v;
   document.getElementById("vistaLista").style.display = v === "lista" ? "block" : "none";
@@ -277,40 +383,59 @@ function mostrarVista(v) {
   }
 }
 
-// ── LISTA ──
+// ── DATOS FILTRADOS ──
+function getDatos() {
+  if (modoActivo === "ayuda") return datosAyuda;
+  if (modoActivo === "acopio") return datosAcopio;
+  return [...datosAyuda.map(d=>({...d,_modo:"ayuda"})), ...datosAcopio.map(d=>({...d,_modo:"acopio"}))];
+}
 function filtrados() {
-  return filtroActivo === "todos" ? datos : datos.filter(d => d.tipo === filtroActivo);
+  const d = getDatos();
+  return filtroActivo === "todos" ? d : d.filter(x => x.tipo === filtroActivo);
 }
 
-function contactoHTML(d) {
-  if (!d.contacto) return "";
+// ── LISTA ──
+function contactoHTML(d, modo) {
+  if (!d.contacto || d.contacto === "undefined") return "";
   if (d.wa) return `<a class="btn-accion btn-wa" href="https://wa.me/58${d.contacto.replace(/\D/g,"").slice(1)}">💬 WhatsApp</a>`;
-  return `<a class="btn-accion btn-llamar" href="tel:${d.contacto}">📞 ${d.contacto}</a>`;
+  const color = modo === "acopio" ? "background:#2471A3" : "";
+  return `<a class="btn-accion btn-llamar" style="${color}" href="tel:${d.contacto}">📞 ${d.contacto}</a>`;
 }
 
 function renderLista() {
   const f = filtrados();
-  document.getElementById("conteo").textContent = `${f.length} punto${f.length!==1?"s":""} cerca de ti`;
+  document.getElementById("conteo").textContent = `${f.length} punto${f.length!==1?"s":""} encontrado${f.length!==1?"s":""}`;
   if (!f.length) {
     document.getElementById("lista").innerHTML = `<div class="vacio"><div class="vacio-icon">🔍</div><p>Sin puntos para este filtro aún.<br>¿Conoces alguno? ¡Repórtalo!</p></div>`;
     return;
   }
   document.getElementById("lista").innerHTML = f.map(d => {
+    const modo = d._modo || modoActivo;
+    const esAcopio = modo === "acopio";
+    const LABELS = esAcopio ? LABELS_ACOPIO : LABELS_AYUDA;
+    const BADGES = esAcopio ? BADGES_ACOPIO : BADGES_AYUDA;
+    const modoBadge = esAcopio
+      ? `<span class="badge badge-modo-acopio">📦 Acopio</span>`
+      : `<span class="badge badge-modo-ayuda">🆘 Ayuda</span>`;
+    const tipoBadge = `<span class="badge ${BADGES[d.tipo]||'badge-general'}">${LABELS[d.tipo]||d.tipo}</span>`;
     const verifHTML = d.verificado
       ? `<span class="t-verif verif-si">✓ Verificado</span>`
       : `<span class="t-verif verif-no">⏳ Sin verificar</span>`;
     return `
-    <div class="tarjeta" data-tipo="${d.tipo}" onclick="verEnMapa(${d.id})">
+    <div class="tarjeta tipo-${esAcopio?'acopio':'ayuda'}" onclick="verEnMapa('${d.id}','${esAcopio?'acopio':'ayuda'}')">
       <div class="t-meta">
-        <span class="badge ${BADGES[d.tipo]}">${LABELS[d.tipo]}</span>
+        <div class="t-meta-left">
+          ${modoActivo==="todos"?modoBadge:""}
+          ${tipoBadge}
+        </div>
         ${verifHTML}
       </div>
       <div class="t-nombre">${d.nombre}</div>
       <div class="t-dir">📍 ${d.direccion}</div>
-      <div class="t-desc">${d.descripcion}</div>
+      <div class="t-desc">${d.descripcion||""}</div>
       <div class="t-acciones">
-        ${contactoHTML(d)}
-        <button class="btn-accion btn-mapa-link" onclick="event.stopPropagation();verEnMapa(${d.id})">🗺️ Mapa</button>
+        ${contactoHTML(d, modo)}
+        <button class="btn-accion btn-mapa-link" onclick="event.stopPropagation();verEnMapa('${d.id}','${esAcopio?'acopio':'ayuda'}')">🗺️ Mapa</button>
       </div>
     </div>`;
   }).join("");
@@ -320,32 +445,41 @@ function renderLista() {
 function iniciarMapa() {
   mapa = L.map("mapa").setView([10.2469, -67.5958], 13);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution:'© <a href="https://openstreetmap.org">OpenStreetMap</a>',
-    maxZoom:19
+    attribution:'© <a href="https://openstreetmap.org">OpenStreetMap</a>', maxZoom:19
   }).addTo(mapa);
   renderMarcadores();
 }
 
-function crearIcono(tipo) {
-  const color = COLORES[tipo] || "#888";
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">
-    <path d="M14 0C6.27 0 0 6.27 0 14c0 9.33 14 22 14 22S28 23.33 28 14C28 6.27 21.73 0 14 0z" fill="${color}"/>
-    <circle cx="14" cy="14" r="7" fill="white"/>
-  </svg>`;
-  return L.divIcon({
-    html: svg, className:"", iconSize:[28,36], iconAnchor:[14,36], popupAnchor:[0,-36]
-  });
+function crearIcono(tipo, modo) {
+  const esAcopio = modo === "acopio";
+  const color = esAcopio ? (COLORES_ACOPIO[tipo]||"#2471A3") : (COLORES_AYUDA[tipo]||"#888");
+  // Acopio usa forma cuadrada/diamante, ayuda usa pin redondo
+  const svg = esAcopio
+    ? `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">
+        <rect x="4" y="4" width="22" height="22" rx="4" fill="${color}"/>
+        <rect x="9" y="9" width="12" height="12" rx="2" fill="white"/>
+       </svg>`
+    : `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">
+        <path d="M14 0C6.27 0 0 6.27 0 14c0 9.33 14 22 14 22S28 23.33 28 14C28 6.27 21.73 0 14 0z" fill="${color}"/>
+        <circle cx="14" cy="14" r="7" fill="white"/>
+       </svg>`;
+  const size = esAcopio ? [30,30] : [28,36];
+  const anchor = esAcopio ? [15,15] : [14,36];
+  return L.divIcon({html:svg, className:"", iconSize:size, iconAnchor:anchor, popupAnchor:[0,-20]});
 }
 
-function popupHTML(d) {
-  const tel = d.contacto
+function popupHTML(d, modo) {
+  const esAcopio = modo === "acopio";
+  const LABELS = esAcopio ? LABELS_ACOPIO : LABELS_AYUDA;
+  const tel = d.contacto && d.contacto !== "undefined"
     ? (d.wa
         ? `<a class="popup-btn pb-wa" href="https://wa.me/58${d.contacto.replace(/\D/g,"").slice(1)}">💬 WhatsApp</a>`
         : `<a class="popup-btn pb-llamar" href="tel:${d.contacto}">📞 Llamar</a>`)
     : "";
   return `<div class="popup-nombre">${d.nombre}</div>
+    <span class="popup-modo popup-modo-${esAcopio?'acopio':'ayuda'}">${esAcopio?'📦 Centro de acopio':'🆘 Punto de ayuda'}</span>
     <div class="popup-dir">📍 ${d.direccion}</div>
-    <div class="popup-desc">${d.descripcion}</div>
+    <div class="popup-desc">${d.descripcion||""}</div>
     <div class="popup-btns">${tel}</div>`;
 }
 
@@ -355,72 +489,60 @@ function renderMarcadores() {
   const f = filtrados();
   f.forEach(d => {
     if (!d.lat || !d.lng) return;
-    const m = L.marker([d.lat, d.lng], {icon: crearIcono(d.tipo)})
-      .addTo(mapa)
-      .bindPopup(popupHTML(d), {maxWidth:240});
+    const modo = d._modo || modoActivo;
+    const m = L.marker([d.lat, d.lng], {icon: crearIcono(d.tipo, modo)})
+      .addTo(mapa).bindPopup(popupHTML(d, modo), {maxWidth:240});
+    m._id = d.id; m._modo = modo;
     marcadores.push(m);
   });
   if (marcadores.length) {
-    const group = L.featureGroup(marcadores);
-    mapa.fitBounds(group.getBounds().pad(0.15));
+    mapa.fitBounds(L.featureGroup(marcadores).getBounds().pad(0.15));
   }
 }
 
-function verEnMapa(id) {
-  const d = datos.find(x => x.id === id);
+function verEnMapa(id, modo) {
+  const lista = modo === "acopio" ? datosAcopio : datosAyuda;
+  const d = lista.find(x => String(x.id) === String(id));
   if (!d || !d.lat) return;
   mostrarVista("mapa");
   setTimeout(() => {
     mapa.setView([d.lat, d.lng], 16);
-    const m = marcadores.find(m => {
-      const ll = m.getLatLng();
-      return Math.abs(ll.lat - d.lat) < 0.0001 && Math.abs(ll.lng - d.lng) < 0.0001;
-    });
+    const m = marcadores.find(mk => String(mk._id) === String(id) && mk._modo === modo);
     if (m) m.openPopup();
   }, 100);
 }
 
 // ── MODAL ──
-function abrirModal() {
-  document.getElementById("overlay").classList.add("open");
+function abrirModal(tipo) {
+  document.getElementById(`overlay${tipo==="ayuda"?"Ayuda":"Acopio"}`).classList.add("open");
   document.body.style.overflow = "hidden";
 }
-function cerrarModal() {
-  document.getElementById("overlay").classList.remove("open");
+function cerrarModal(tipo) {
+  const id = tipo === "ayuda" ? "overlayAyuda" : "overlayAcopio";
+  document.getElementById(id).classList.remove("open");
   document.body.style.overflow = "";
-  document.getElementById("formWrap").style.display = "block";
-  document.getElementById("exitoWrap").style.display = "none";
-  ["f_nombre","f_tipo","f_direccion","f_maps","f_lat","f_lng","f_desc","f_contacto","f_reportero"]
-    .forEach(id => { document.getElementById(id).value = ""; });
+  const prefix = tipo === "ayuda" ? "a" : "c";
+  [`${prefix}_nombre`,`${prefix}_tipo`,`${prefix}_direccion`,`${prefix}_maps`,
+   `${prefix}_lat`,`${prefix}_lng`,`${prefix}_desc`,`${prefix}_contacto`,`${prefix}_reportero`]
+    .forEach(fid => { const el=document.getElementById(fid); if(el) el.value=""; });
+  document.getElementById(`formWrap${tipo==="ayuda"?"Ayuda":"Acopio"}`).style.display = "block";
+  document.getElementById(`exito${tipo==="ayuda"?"Ayuda":"Acopio"}`).style.display = "none";
 }
-function clickOverlay(e) {
-  if (e.target === document.getElementById("overlay")) cerrarModal();
+function clickOverlay(e, tipo) {
+  const id = tipo === "ayuda" ? "overlayAyuda" : "overlayAcopio";
+  if (e.target === document.getElementById(id)) cerrarModal(tipo);
 }
 
+// ── GEOCODIFICACION ──
 function extraerCoordsDeLink(url) {
   if (!url) return null;
-  // Formato: @lat,lng o ?q=lat,lng o /maps/place/.../lat,lng
-  const patrones = [
-    /@(-?\d+\.\d+),(-?\d+\.\d+)/,
-    /[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/,
-    /ll=(-?\d+\.\d+),(-?\d+\.\d+)/
-  ];
+  const patrones = [/@(-?\d+\.\d+),(-?\d+\.\d+)/, /[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/, /ll=(-?\d+\.\d+),(-?\d+\.\d+)/];
   for (const p of patrones) {
     const m = url.match(p);
     if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
   }
   return null;
 }
-
-async function resolverCoordsDeLink(url) {
-  // Primero intenta extraer directo del URL
-  const directo = extraerCoordsDeLink(url);
-  if (directo) return directo;
-  // Si es un link corto (maps.app.goo.gl), intentar igual — coordenadas no están en el short link
-  // el usuario tendrá que usar el link largo o dejar que Nominatim haga su trabajo
-  return null;
-}
-
 async function geocodificar(direccion) {
   const intentos = [
     direccion + ", Maracay, Aragua, Venezuela",
@@ -430,78 +552,61 @@ async function geocodificar(direccion) {
   ];
   for (const q of intentos) {
     try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=ve`,
-        { headers: {"Accept-Language": "es"} }
-      );
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=ve`, {headers:{"Accept-Language":"es"}});
       const data = await res.json();
-      if (data && data.length > 0) {
-        return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
-      }
-    } catch(e) { console.warn("Intento fallido:", q, e); }
+      if (data && data.length > 0) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+    } catch(e) {}
   }
   return null;
 }
 
-async function enviarReporte() {
-  const nombre = document.getElementById("f_nombre").value.trim();
-  const tipo = document.getElementById("f_tipo").value;
-  const dir = document.getElementById("f_direccion").value.trim();
-  if (!nombre || !tipo || !dir) { alert("Completa los campos obligatorios (*)"); return; }
+// ── ENVIAR REPORTE ──
+async function enviarReporte(tipo) {
+  const p = tipo === "ayuda" ? "a" : "c";
+  const nombre = document.getElementById(`${p}_nombre`).value.trim();
+  const tipoVal = document.getElementById(`${p}_tipo`).value;
+  const dir = document.getElementById(`${p}_direccion`).value.trim();
+  if (!nombre || !tipoVal || !dir) { alert("Completa los campos obligatorios (*)"); return; }
 
-  const btnEnviar = document.querySelector(".btn-enviar");
-  btnEnviar.textContent = "Enviando...";
-  btnEnviar.disabled = true;
+  const btn = document.querySelector(`#overlay${tipo==="ayuda"?"Ayuda":"Acopio"} .btn-enviar`);
+  btn.textContent = "Enviando..."; btn.disabled = true;
 
-  let lat = document.getElementById("f_lat").value.trim();
-  let lng = document.getElementById("f_lng").value.trim();
-  const mapsLink = document.getElementById("f_maps").value.trim();
+  let lat = document.getElementById(`${p}_lat`).value.trim();
+  let lng = document.getElementById(`${p}_lng`).value.trim();
+  const mapsLink = document.getElementById(`${p}_maps`).value.trim();
 
-  // 1. Intentar extraer coordenadas del link de Google Maps
-  if (!lat || !lng) {
-    const coordsMaps = extraerCoordsDeLink(mapsLink);
-    if (coordsMaps) { lat = coordsMaps.lat; lng = coordsMaps.lng; }
-  }
-  // 2. Si no, geocodificar por dirección
-  if (!lat || !lng) {
-    const coords = await geocodificar(dir);
-    if (coords) { lat = coords.lat; lng = coords.lng; }
-  }
+  if (!lat || !lng) { const c = extraerCoordsDeLink(mapsLink); if (c) { lat=c.lat; lng=c.lng; } }
+  if (!lat || !lng) { const c = await geocodificar(dir); if (c) { lat=c.lat; lng=c.lng; } }
 
   const payload = {
-    nombre, tipo, direccion: dir, lat, lng, maps_link: mapsLink,
-    descripcion: document.getElementById("f_desc").value.trim(),
-    contacto: document.getElementById("f_contacto").value.trim(),
-    wa: document.getElementById("f_contacto").value.trim().startsWith("04") ? "si" : "no",
-    reportero: document.getElementById("f_reportero").value.trim(),
+    modo: tipo,
+    nombre, tipo: tipoVal, direccion: dir, lat, lng, maps_link: mapsLink,
+    descripcion: document.getElementById(`${p}_desc`).value.trim(),
+    contacto: document.getElementById(`${p}_contacto`).value.trim(),
+    wa: document.getElementById(`${p}_contacto`).value.trim().startsWith("04") ? "si" : "no",
+    reportero: document.getElementById(`${p}_reportero`).value.trim(),
     fecha: new Date().toISOString()
   };
 
   try {
-    await fetch(SHEETS_URL, {
-      method:"POST", mode:"no-cors",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify(payload)
-    });
-  } catch(e) { console.warn("Error enviando a Sheets:", e); }
+    await fetch(SHEETS_URL, {method:"POST", mode:"no-cors", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload)});
+  } catch(e) { console.warn(e); }
 
-  document.getElementById("formWrap").style.display = "none";
-  document.getElementById("exitoWrap").style.display = "block";
+  document.getElementById(`formWrap${tipo==="ayuda"?"Ayuda":"Acopio"}`).style.display = "none";
+  document.getElementById(`exito${tipo==="ayuda"?"Ayuda":"Acopio"}`).style.display = "block";
 }
 
-// ── INIT ──
+// ── CARGAR DATOS ──
 async function cargarDatos() {
-  const lista = document.getElementById("lista");
-  lista.innerHTML = `<div class="vacio"><div class="vacio-icon">⏳</div><p>Cargando puntos de ayuda...</p></div>`;
+  document.getElementById("lista").innerHTML = `<div class="vacio"><div class="vacio-icon">⏳</div><p>Cargando puntos...</p></div>`;
   try {
     const res = await fetch(SHEETS_URL);
     const json = await res.json();
-    if (Array.isArray(json) && json.length > 0) {
-      datos = json;
-    }
-  } catch(e) {
-    console.warn("No se pudo cargar desde Sheets:", e);
-  }
+    if (json.ayuda) datosAyuda = json.ayuda;
+    if (json.acopio) datosAcopio = json.acopio;
+    // Compatibilidad con formato anterior (array plano)
+    if (Array.isArray(json)) datosAyuda = json;
+  } catch(e) { console.warn("Error cargando datos:", e); }
   renderLista();
   if (vistaActual === "mapa" && mapa) renderMarcadores();
 }
