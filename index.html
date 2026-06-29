@@ -118,8 +118,8 @@
 
 <header>
   <div class="header-left">
-    <h1>🆘 Ayuda Maracay</h1>
-    <p>Aragua · Terremoto 24 Jun 2026</p>
+    <h1>🆘 Ayuda Venezuela</h1>
+    <p>Terremoto 24 Jun 2026</p>
   </div>
   <div class="toggle-vista">
     <button class="toggle-btn activo" id="btnLista" onclick="mostrarVista('lista')">📋 Lista</button>
@@ -163,14 +163,14 @@
   <div class="sheet">
     <button class="btn-close" onclick="cerrarModal()">✕</button>
     <div class="sheet-titulo">Reportar punto de ayuda</div>
-    <div class="sheet-sub">Tu reporte ayuda a que más personas encuentren ayuda rápido en Maracay.</div>
+    <div class="sheet-sub">Tu reporte ayuda a que más personas encuentren ayuda rápido en Venezuela.</div>
     <div class="aviso-sheet">
-      📋 Cada reporte es revisado antes de publicarse. Si conoces coordenadas GPS del lugar, inclúyelas — ayuda a que aparezca exacto en el mapa.
+      📋 Cada reporte es revisado antes de publicarse. Si no tienes coordenadas GPS, igual envíalo — intentaremos ubicarlo automáticamente en el mapa.
     </div>
     <div id="formWrap">
       <div class="campo">
         <label class="req">Nombre del lugar u organización</label>
-        <input type="text" id="f_nombre" placeholder="Ej: Iglesia San José, Cruz Roja Maracay…">
+        <input type="text" id="f_nombre" placeholder="Ej: Iglesia San José, Cruz Roja Aragua…">
       </div>
       <div class="campo">
         <label class="req">Tipo de ayuda</label>
@@ -393,34 +393,55 @@ function clickOverlay(e) {
   if (e.target === document.getElementById("overlay")) cerrarModal();
 }
 
+async function geocodificar(direccion) {
+  try {
+    const query = encodeURIComponent(direccion + ", Venezuela");
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`, {
+      headers: {"Accept-Language": "es", "User-Agent": "AyudaVenezuela/1.0"}
+    });
+    const data = await res.json();
+    if (data && data.length > 0) {
+      return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+    }
+  } catch(e) { console.warn("Geocodificación fallida:", e); }
+  return null;
+}
+
 async function enviarReporte() {
   const nombre = document.getElementById("f_nombre").value.trim();
   const tipo = document.getElementById("f_tipo").value;
   const dir = document.getElementById("f_direccion").value.trim();
   if (!nombre || !tipo || !dir) { alert("Completa los campos obligatorios (*)"); return; }
 
+  const btnEnviar = document.querySelector(".btn-enviar");
+  btnEnviar.textContent = "Enviando...";
+  btnEnviar.disabled = true;
+
+  let lat = document.getElementById("f_lat").value.trim();
+  let lng = document.getElementById("f_lng").value.trim();
+
+  // Si no hay coordenadas, intentar geocodificar automáticamente
+  if (!lat || !lng) {
+    const coords = await geocodificar(dir);
+    if (coords) { lat = coords.lat; lng = coords.lng; }
+  }
+
   const payload = {
-    nombre, tipo, direccion: dir,
-    lat: document.getElementById("f_lat").value.trim(),
-    lng: document.getElementById("f_lng").value.trim(),
+    nombre, tipo, direccion: dir, lat, lng,
     descripcion: document.getElementById("f_desc").value.trim(),
     contacto: document.getElementById("f_contacto").value.trim(),
+    wa: document.getElementById("f_contacto").value.trim().startsWith("04") ? "si" : "no",
     reportero: document.getElementById("f_reportero").value.trim(),
     fecha: new Date().toISOString()
   };
 
-  // Enviar a Google Sheets si la URL está configurada
-  if (SHEETS_URL !== "REEMPLAZAR_CON_TU_URL_DE_APPS_SCRIPT") {
-    try {
-      await fetch(SHEETS_URL, {
-        method:"POST", mode:"no-cors",
-        headers:{"Content-Type":"application/json"},
-        body: JSON.stringify(payload)
-      });
-    } catch(e) { console.warn("Error enviando a Sheets:", e); }
-  } else {
-    console.log("Reporte (sin Sheets):", payload);
-  }
+  try {
+    await fetch(SHEETS_URL, {
+      method:"POST", mode:"no-cors",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(payload)
+    });
+  } catch(e) { console.warn("Error enviando a Sheets:", e); }
 
   document.getElementById("formWrap").style.display = "none";
   document.getElementById("exitoWrap").style.display = "block";
