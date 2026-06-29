@@ -83,10 +83,13 @@
     /* MODAL BOTTOM SHEET */
     .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:flex-end;justify-content:center;}
     .overlay.open{display:flex;}
-    .sheet{background:var(--blanco);border-radius:16px 16px 0 0;padding:20px 16px 36px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;}
-    .sheet-titulo{font-size:1.05rem;font-weight:700;margin-bottom:3px;}
-    .sheet-sub{font-size:.78rem;color:var(--gris3);margin-bottom:14px;}
-    .btn-close{float:right;background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--gris3);margin-top:-4px;}
+    .sheet{background:var(--blanco);border-radius:16px 16px 0 0;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;display:flex;flex-direction:column;}
+    .sheet-header{display:flex;justify-content:space-between;align-items:flex-start;padding:18px 16px 0;position:sticky;top:0;background:var(--blanco);z-index:10;padding-bottom:10px;border-bottom:1px solid var(--gris4);}
+    .sheet-header-text{flex:1;padding-right:12px;}
+    .sheet-titulo{font-size:1.05rem;font-weight:700;margin-bottom:2px;}
+    .sheet-sub{font-size:.78rem;color:var(--gris3);}
+    .sheet-body{padding:14px 16px 36px;overflow-y:auto;}
+    .btn-close{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--gris3);line-height:1;flex-shrink:0;padding:0;}
     .aviso-sheet{background:#eaf4fb;border-left:3px solid var(--azul);padding:8px 12px;font-size:.74rem;color:#1a5276;border-radius:0 6px 6px 0;margin-bottom:14px;line-height:1.5;}
     .campo{margin-bottom:12px;}
     .campo label{display:block;font-size:.78rem;font-weight:600;margin-bottom:4px;}
@@ -161,64 +164,60 @@
 <!-- MODAL -->
 <div class="overlay" id="overlay" onclick="clickOverlay(event)">
   <div class="sheet">
-    <button class="btn-close" onclick="cerrarModal()">✕</button>
-    <div class="sheet-titulo">Reportar punto de ayuda</div>
-    <div class="sheet-sub">Tu reporte ayuda a que más personas encuentren ayuda rápido en Venezuela.</div>
-    <div class="aviso-sheet">
-      📋 Cada reporte es revisado antes de publicarse. Si no tienes coordenadas GPS, igual envíalo — intentaremos ubicarlo automáticamente en el mapa.
+    <div class="sheet-header">
+      <div class="sheet-header-text">
+        <div class="sheet-titulo">Reportar punto de ayuda</div>
+        <div class="sheet-sub">Tu reporte ayuda a que más personas encuentren ayuda rápido.</div>
+      </div>
+      <button class="btn-close" onclick="cerrarModal()">✕</button>
     </div>
-    <div id="formWrap">
-      <div class="campo">
-        <label class="req">Nombre del lugar u organización</label>
-        <input type="text" id="f_nombre" placeholder="Ej: Iglesia San José, Cruz Roja Aragua…">
+    <div class="sheet-body">
+      <div class="aviso-sheet">
+        📋 Cada reporte es revisado antes de publicarse. La dirección se ubica automáticamente en el mapa.
       </div>
-      <div class="campo">
-        <label class="req">Tipo de ayuda</label>
-        <select id="f_tipo">
-          <option value="">— Selecciona —</option>
-          <option value="albergue">🏠 Albergue / Refugio</option>
-          <option value="comida">🍲 Comida / Agua</option>
-          <option value="medicamentos">💊 Medicamentos / Atención médica</option>
-          <option value="ropa">👕 Ropa / Artículos básicos</option>
-          <option value="rescate">🚨 Rescate / Búsqueda</option>
-          <option value="psicologica">🧠 Apoyo psicológico</option>
-        </select>
-      </div>
-      <div class="campo">
-        <label class="req">Dirección</label>
-        <input type="text" id="f_direccion" placeholder="Ej: Av. Las Delicias, frente al C.C. Las Américas">
-      </div>
-      <div class="campo">
-        <label>Coordenadas GPS (opcional pero recomendado)</label>
-        <div class="coords-row">
-          <div class="campo" style="margin-bottom:0">
-            <input type="text" id="f_lat" placeholder="Latitud  Ej: 10.2469">
-          </div>
-          <div class="campo" style="margin-bottom:0">
-            <input type="text" id="f_lng" placeholder="Longitud  Ej: -67.5958">
-          </div>
+      <div id="formWrap">
+        <div class="campo">
+          <label class="req">Nombre del lugar u organización</label>
+          <input type="text" id="f_nombre" placeholder="Ej: Iglesia San José, Cruz Roja Aragua…">
         </div>
-        <div class="campo-hint">📍 En Google Maps: mantén presionado el punto → copia los números que aparecen abajo</div>
+        <div class="campo">
+          <label class="req">Tipo de ayuda</label>
+          <select id="f_tipo">
+            <option value="">— Selecciona —</option>
+            <option value="albergue">🏠 Albergue / Refugio</option>
+            <option value="comida">🍲 Comida / Agua</option>
+            <option value="medicamentos">💊 Medicamentos / Atención médica</option>
+            <option value="ropa">👕 Ropa / Artículos básicos</option>
+            <option value="rescate">🚨 Rescate / Búsqueda</option>
+            <option value="psicologica">🧠 Apoyo psicológico</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label class="req">Dirección</label>
+          <input type="text" id="f_direccion" placeholder="Ej: Av. Las Delicias, frente al C.C. Las Américas">
+        </div>
+        <input type="hidden" id="f_lat" value="">
+        <input type="hidden" id="f_lng" value="">
+        <div class="campo">
+          <label>Descripción (qué ofrecen, horario, requisitos)</label>
+          <textarea id="f_desc" placeholder="Ej: Abierto 7am–8pm. Aceptan familias. Traer cédula."></textarea>
+        </div>
+        <div class="campo">
+          <label>Teléfono o WhatsApp</label>
+          <input type="text" id="f_contacto" placeholder="Ej: 0412-1234567">
+        </div>
+        <div class="campo">
+          <label>Tu nombre (opcional)</label>
+          <input type="text" id="f_reportero" placeholder="Para seguimiento del reporte">
+        </div>
+        <button class="btn-enviar" onclick="enviarReporte()">Enviar reporte</button>
       </div>
-      <div class="campo">
-        <label>Descripción (qué ofrecen, horario, requisitos)</label>
-        <textarea id="f_desc" placeholder="Ej: Abierto 7am–8pm. Aceptan familias. Traer cédula."></textarea>
+      <div class="exito" id="exitoWrap">
+        <div class="exito-icon">✅</div>
+        <h3>¡Reporte recibido!</h3>
+        <p>Será revisado y publicado en breve.<br>Gracias por ayudar a tu comunidad.</p>
+        <button class="btn-enviar" onclick="cerrarModal()" style="max-width:180px;margin:0 auto;display:block;">Cerrar</button>
       </div>
-      <div class="campo">
-        <label>Teléfono o WhatsApp</label>
-        <input type="text" id="f_contacto" placeholder="Ej: 0412-1234567">
-      </div>
-      <div class="campo">
-        <label>Tu nombre (opcional)</label>
-        <input type="text" id="f_reportero" placeholder="Para seguimiento del reporte">
-      </div>
-      <button class="btn-enviar" onclick="enviarReporte()">Enviar reporte</button>
-    </div>
-    <div class="exito" id="exitoWrap">
-      <div class="exito-icon">✅</div>
-      <h3>¡Reporte recibido!</h3>
-      <p>Será revisado y publicado en breve.<br>Gracias por ayudar a tu comunidad.</p>
-      <button class="btn-enviar" onclick="cerrarModal()" style="max-width:180px;margin:0 auto;display:block;">Cerrar</button>
     </div>
   </div>
 </div>
