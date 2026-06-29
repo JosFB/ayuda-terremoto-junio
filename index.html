@@ -199,6 +199,11 @@
         <input type="hidden" id="f_lat" value="">
         <input type="hidden" id="f_lng" value="">
         <div class="campo">
+          <label>Enlace de Google Maps (opcional pero recomendado)</label>
+          <input type="url" id="f_maps" placeholder="Ej: https://maps.app.goo.gl/...">
+          <div class="campo-hint">📍 En Google Maps: busca el lugar → toca Compartir → copia el enlace</div>
+        </div>
+        <div class="campo">
           <label>Descripción (qué ofrecen, horario, requisitos)</label>
           <textarea id="f_desc" placeholder="Ej: Abierto 7am–8pm. Aceptan familias. Traer cédula."></textarea>
         </div>
@@ -385,24 +390,56 @@ function cerrarModal() {
   document.body.style.overflow = "";
   document.getElementById("formWrap").style.display = "block";
   document.getElementById("exitoWrap").style.display = "none";
-  ["f_nombre","f_tipo","f_direccion","f_lat","f_lng","f_desc","f_contacto","f_reportero"]
+  ["f_nombre","f_tipo","f_direccion","f_maps","f_lat","f_lng","f_desc","f_contacto","f_reportero"]
     .forEach(id => { document.getElementById(id).value = ""; });
 }
 function clickOverlay(e) {
   if (e.target === document.getElementById("overlay")) cerrarModal();
 }
 
+function extraerCoordsDeLink(url) {
+  if (!url) return null;
+  // Formato: @lat,lng o ?q=lat,lng o /maps/place/.../lat,lng
+  const patrones = [
+    /@(-?\d+\.\d+),(-?\d+\.\d+)/,
+    /[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/,
+    /ll=(-?\d+\.\d+),(-?\d+\.\d+)/
+  ];
+  for (const p of patrones) {
+    const m = url.match(p);
+    if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+  }
+  return null;
+}
+
+async function resolverCoordsDeLink(url) {
+  // Primero intenta extraer directo del URL
+  const directo = extraerCoordsDeLink(url);
+  if (directo) return directo;
+  // Si es un link corto (maps.app.goo.gl), intentar igual — coordenadas no están en el short link
+  // el usuario tendrá que usar el link largo o dejar que Nominatim haga su trabajo
+  return null;
+}
+
 async function geocodificar(direccion) {
-  try {
-    const query = encodeURIComponent(direccion + ", Venezuela");
-    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`, {
-      headers: {"Accept-Language": "es", "User-Agent": "AyudaVenezuela/1.0"}
-    });
-    const data = await res.json();
-    if (data && data.length > 0) {
-      return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
-    }
-  } catch(e) { console.warn("Geocodificación fallida:", e); }
+  const intentos = [
+    direccion + ", Maracay, Aragua, Venezuela",
+    direccion + ", Aragua, Venezuela",
+    direccion + ", Venezuela",
+    "Maracay, Aragua, Venezuela"
+  ];
+  for (const q of intentos) {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=ve`,
+        { headers: {"Accept-Language": "es"} }
+      );
+      const data = await res.json();
+      if (data && data.length > 0) {
+        return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+      }
+    } catch(e) { console.warn("Intento fallido:", q, e); }
+  }
   return null;
 }
 
@@ -418,15 +455,21 @@ async function enviarReporte() {
 
   let lat = document.getElementById("f_lat").value.trim();
   let lng = document.getElementById("f_lng").value.trim();
+  const mapsLink = document.getElementById("f_maps").value.trim();
 
-  // Si no hay coordenadas, intentar geocodificar automáticamente
+  // 1. Intentar extraer coordenadas del link de Google Maps
+  if (!lat || !lng) {
+    const coordsMaps = extraerCoordsDeLink(mapsLink);
+    if (coordsMaps) { lat = coordsMaps.lat; lng = coordsMaps.lng; }
+  }
+  // 2. Si no, geocodificar por dirección
   if (!lat || !lng) {
     const coords = await geocodificar(dir);
     if (coords) { lat = coords.lat; lng = coords.lng; }
   }
 
   const payload = {
-    nombre, tipo, direccion: dir, lat, lng,
+    nombre, tipo, direccion: dir, lat, lng, maps_link: mapsLink,
     descripcion: document.getElementById("f_desc").value.trim(),
     contacto: document.getElementById("f_contacto").value.trim(),
     wa: document.getElementById("f_contacto").value.trim().startsWith("04") ? "si" : "no",
