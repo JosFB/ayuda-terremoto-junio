@@ -685,7 +685,8 @@ async function enviarReporte(tipo) {
   const nombre = document.getElementById(`${p}_nombre`).value.trim();
   const tipoVal = document.getElementById(`${p}_tipo`).value;
   const dir = document.getElementById(`${p}_direccion`).value.trim();
-  if (!nombre || !tipoVal || !dir) { alert("Completa los campos obligatorios (*)"); return; }
+  const estado = document.getElementById(`${p}_estado`).value;
+  if (!nombre || !tipoVal || !dir || !estado) { alert("Completa los campos obligatorios (*)"); return; }
 
   const btn = document.querySelector(`#overlay${tipo==="ayuda"?"Ayuda":"Acopio"} .btn-enviar`);
   btn.textContent = "Enviando..."; btn.disabled = true;
@@ -697,7 +698,6 @@ async function enviarReporte(tipo) {
   if (!lat || !lng) { const c = extraerCoordsDeLink(mapsLink); if (c) { lat=c.lat; lng=c.lng; } }
   if (!lat || !lng) { const c = await geocodificar(dir); if (c) { lat=c.lat; lng=c.lng; } }
 
-  const estado = document.getElementById(`${p}_estado`).value;
   const payload = {
     modo: tipo,
     nombre, tipo: tipoVal, direccion: dir, estado, lat, lng, maps_link: mapsLink,
